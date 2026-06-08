@@ -66,6 +66,11 @@ class KosGUI:
             messagebox.showerror("Error", "Username atau Password salah!")
 
     def logout(self):
+        if hasattr(self, 'lbl_total'):
+            try:
+                self.lbl_total.destroy()
+            except:
+                pass
         self.user_aktif = None
         self.tampilkan_login()
 
@@ -218,12 +223,24 @@ class KosGUI:
             kmr = item['values'][3]
             
             if messagebox.askyesno("Konfirmasi", f"Yakin hapus penghuni {usr}?"):
-                if kmr and kmr != 'None':
-                    self.db.eksekusi("UPDATE kamar SET status='Kosong' WHERE nomor_kamar=?", (kmr,))
-                self.db.eksekusi("DELETE FROM pengguna WHERE username=?", (usr,))
-                muat_data_penghuni()
-                update_cb_kamar()
-                messagebox.showinfo("Sukses", "Penghuni dihapus.")
+                try:
+                    # 1. Jika penghuni menempati kamar, kosongkan dulu status kamarnya
+                    if kmr and kmr != 'None' and kmr != '-':
+                        self.db.eksekusi("UPDATE kamar SET status='Kosong' WHERE nomor_kamar=?", (kmr,))
+                
+                    # 2. HAPUS DATA DARI TABEL DETAIL PENGHUNI (Ini yang sebelumnya kurang)
+                    self.db.eksekusi("DELETE FROM detail_penghuni WHERE username=?", (usr,))
+                
+                    # 3. Hapus data akun login dari tabel pengguna
+                    self.db.eksekusi("DELETE FROM pengguna WHERE username=?", (usr,))
+                
+                    # 4. Refresh tampilan tabel dan pilihan kamar di aplikasi
+                    muat_data_penghuni()
+                    update_cb_kamar()
+                
+                    messagebox.showinfo("Sukses", f"Penghuni {usr} berhasil dihapus dari sistem.")
+                except Exception as e:
+                    messagebox.showerror("Error", f"Gagal menghapus data: {str(e)}")
 
         ttk.Button(frame, text="Hapus Penghuni Terpilih", command=hapus_penghuni).pack(pady=5)
 
@@ -288,7 +305,7 @@ class KosGUI:
             self.tv_laporan.heading(col, text=col)
         self.tv_laporan.pack(fill="both", expand=True, padx=10, pady=10)
         
-        self.lbl_total = tk.Label(text="Total Pendapatan: Rp 0", font=("Arial", 14, "bold"))
+        self.lbl_total = tk.Label(frame, text="Total Pendapatan: Rp 0", font=("Arial", 14, "bold"))
         self.lbl_total.pack(pady=10)
         
         def muat_laporan():
@@ -308,7 +325,7 @@ class KosGUI:
     # ==================== DASHBOARD PENGHUNI ====================
     def tampilkan_dashboard_penghuni(self):
         self.bersihkan_frame()
-        self.root.title(f"Dashboard Penghuni - {self.user_aktif}")
+        self.root.title(f"KOSINI APP - {self.user_aktif}")
         
         # Header
         header = tk.Frame(self.main_frame, bg="#27ae60", pady=10)

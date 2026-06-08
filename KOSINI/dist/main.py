@@ -2,14 +2,16 @@ import sqlite3
 from getpass import getpass
 import os
 
+
+
 class Database:
     def __init__(self, db_name="kosan.db"):
         self.conn = sqlite3.connect(db_name)
         self.cursor = self.conn.cursor()
         self.buat_tabel()
 
-    def buat_tabel(self):
-        # Tabel Pengguna (Admin & Penghuni)
+    def buat_tabel(self): # untuk semua user
+        
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS pengguna (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -19,7 +21,7 @@ class Database:
             )
         ''')
         
-        # Tabel Kamar
+        # kamar
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS kamar (
                 nomor_kamar TEXT PRIMARY KEY,
@@ -29,7 +31,7 @@ class Database:
             )
         ''')
         
-        # Tabel Penghuni (Detail)
+        # detail penghuni
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS detail_penghuni (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,7 +44,7 @@ class Database:
             )
         ''')
         
-        # Tabel Pembayaran
+        # form pembayaran (admin side)
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS pembayaran (
                 id_pembayaran INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -54,7 +56,7 @@ class Database:
             )
         ''')
         
-        # Akun Admin Default jika belum ada (User: admin, Pass: admin123)
+        # akun admin dummy
         try:
             self.cursor.execute("INSERT INTO pengguna (username, password, peran) VALUES (?, ?, ?)", 
                                 ('admin', 'admin123', 'admin'))
@@ -122,7 +124,7 @@ class KosApp:
             input("Username atau Password salah! Tekan Enter...")
             return False
 
-    # ==================== MENU ADMIN ====================
+    # menu (admin)
     def menu_admin(self):
         while True:
             self.bersihkan_layar()
@@ -153,7 +155,6 @@ class KosApp:
             print("1. Tambah Kamar")
             print("2. Lihat Semua Kamar")
             print("3. Update Data Kamar")
-            # Menghapus list menu hapus kamar untuk menyederhanakan fungsionalitas utama
             print("4. Kembali")
             pilih = input("Pilih [1-4]: ")
 
